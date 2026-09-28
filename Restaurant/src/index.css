@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Jost:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", "Georgia", serif;
+  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0b0a08;
+  --color-coal: #14110c;
+  --color-coal-2: #1a1610;
+  --color-gold: #c9a45c;
+  --color-gold-light: #e7ce9a;
+  --color-cream: #f3eee4;
+
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-kenburns: kenburns 20s ease-in-out infinite alternate;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes kenburns {
+    from { transform: scale(1); }
+    to { transform: scale(1.14); }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink text-cream font-sans antialiased;
+}
+
+section[id] {
+  scroll-margin-top: 84px;
+}
+
+::selection {
+  background: #c9a45c;
+  color: #0b0a08;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0a08;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b251b;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c9a45c;
+}
+
+@utility text-stroke-gold {
+  -webkit-text-stroke: 1px rgba(201, 164, 92, 0.4);
+  color: transparent;
+}
