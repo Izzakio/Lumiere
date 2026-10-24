@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
+import AdminReservations from "./components/AdminReservations";
 import Preloader from "./components/Preloader";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -15,6 +16,13 @@ import Footer from "./components/Footer";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(() => window.location.hash === "#admin");
+
+  useEffect(() => {
+    const updateRoute = () => setIsAdmin(window.location.hash === "#admin");
+    window.addEventListener("hashchange", updateRoute);
+    return () => window.removeEventListener("hashchange", updateRoute);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 2600);
@@ -27,6 +35,10 @@ export default function App() {
       document.body.style.overflow = "";
     };
   }, [loading]);
+
+  if (isAdmin) {
+    return <AdminReservations />;
+  }
 
   return (
     <div className="min-h-screen bg-ink font-sans text-cream">

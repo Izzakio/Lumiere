@@ -147,13 +147,18 @@ export default function Footer() {
           <p className="text-[10px] font-light tracking-[0.3em] text-cream/25 uppercase">
             Crafted with Passion in Jakarta
           </p>
-          <a
-            href="#beranda"
-            aria-label="Kembali ke atas"
-            className="flex h-10 w-10 items-center justify-center border border-cream/15 text-cream/60 transition-all duration-300 hover:border-gold hover:bg-gold hover:text-ink"
-          >
-            <ArrowUp size={15} strokeWidth={1.5} />
-          </a>
+          <div className="flex items-center gap-5">
+            <a href="#admin" className="text-[10px] text-cream/35 transition-colors hover:text-gold">
+              Admin Reservasi
+            </a>
+            <a
+              href="#beranda"
+              aria-label="Kembali ke atas"
+              className="flex h-10 w-10 items-center justify-center border border-cream/15 text-cream/60 transition-all duration-300 hover:border-gold hover:bg-gold hover:text-ink"
+            >
+              <ArrowUp size={15} strokeWidth={1.5} />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

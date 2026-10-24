@@ -9,6 +9,8 @@ import {
   Phone,
   Shirt,
 } from "lucide-react";
+import type { ReservationSubmission } from "../types/reservation";
+import { getReservationApiUrl } from "../utils/reservationApi";
 
 const infoItems = [
   {
@@ -39,25 +41,55 @@ const inputCls =
   "w-full border border-cream/15 bg-white/[0.03] px-4 py-3.5 text-sm font-light text-cream placeholder:text-cream/30 outline-none transition-all duration-300 focus:border-gold/70 focus:bg-white/[0.05] [color-scheme:dark]";
 
 export default function Reservation() {
-  const [whatsappUrl, setWhatsappUrl] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
 
-    const formData = new FormData(e.currentTarget);
-    const message = [
-      "Halo Lumière, saya ingin mengajukan reservasi:",
-      `Nama: ${formData.get("name")}`,
-      `Nomor telepon: ${formData.get("phone")}`,
-      `Tanggal: ${formData.get("date")}`,
-      `Waktu: ${formData.get("time")} WIB`,
-      `Jumlah tamu: ${formData.get("guests")}`,
-      `Permintaan khusus: ${formData.get("notes") || "-"}`,
-    ].join("\n");
-    const url = `https://wa.me/628981056300?${new URLSearchParams({ text: message })}`;
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const reservation: ReservationSubmission & { website: string } = {
+      name: String(formData.get("name") ?? ""),
+      phone: String(formData.get("phone") ?? ""),
+      date: String(formData.get("date") ?? ""),
+      time: String(formData.get("time") ?? ""),
+      guests: Number(formData.get("guests")),
+      notes: String(formData.get("notes") ?? ""),
+      website: String(formData.get("website") ?? ""),
+    };
 
-    setWhatsappUrl(url);
-    window.open(url, "_blank", "noopener,noreferrer");
+    try {
+      const response = await fetch(getReservationApiUrl(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reservation),
+      });
+      const payload: unknown = await response.json();
+
+      if (!response.ok) {
+        const message =
+          typeof payload === "object" && payload !== null && "error" in payload &&
+          typeof payload.error === "string"
+            ? payload.error
+            : "Reservasi belum tersimpan. Silakan coba lagi.";
+        throw new Error(message);
+      }
+
+      form.reset();
+      setSubmitted(true);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Terjadi kesalahan saat mengirim reservasi. Silakan coba lagi.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -139,7 +171,7 @@ export default function Reservation() {
             <div className="absolute -top-px -left-px h-10 w-10 border-t-2 border-l-2 border-gold" />
             <div className="absolute -right-px -bottom-px h-10 w-10 border-r-2 border-b-2 border-gold" />
 
-            {whatsappUrl ? (
+            {submitted ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -150,24 +182,18 @@ export default function Reservation() {
                   <Check size={30} className="text-gold" strokeWidth={1.5} />
                 </div>
                 <h3 className="mt-8 font-serif text-3xl font-medium text-cream">
-                  Lanjutkan di WhatsApp
+                  Reservasi Tersimpan
                 </h3>
                 <p className="mt-4 max-w-sm text-sm leading-relaxed font-light text-cream/55">
-                  Pesan reservasi sudah disiapkan untuk nomor kami. Silakan tekan{" "}
-                  <span className="text-gold">Kirim</span> di WhatsApp agar
-                  permintaan Anda diterima.
+                  Terima kasih. Permintaan reservasi Anda sudah tersimpan dan
+                  akan ditinjau oleh tim kami.
                 </p>
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-8 bg-gold px-8 py-3.5 text-[11px] font-light tracking-[0.28em] text-ink uppercase transition-all duration-400 hover:shadow-[0_0_45px_rgba(201,164,92,0.35)]"
-                >
-                  Buka WhatsApp
-                </a>
                 <button
-                  onClick={() => setWhatsappUrl("")}
-                  className="mt-5 border border-gold/60 px-8 py-3.5 text-[11px] font-light tracking-[0.28em] text-gold uppercase transition-all duration-400 hover:bg-gold hover:text-ink"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setError("");
+                  }}
+                  className="mt-10 border border-gold/60 px-8 py-3.5 text-[11px] font-light tracking-[0.28em] text-gold uppercase transition-all duration-400 hover:bg-gold hover:text-ink"
                 >
                   Buat Reservasi Lain
                 </button>
@@ -177,6 +203,11 @@ export default function Reservation() {
                 <h3 className="font-serif text-2xl font-medium text-cream">
                   Formulir <span className="text-gold italic">Reservasi</span>
                 </h3>
+
+                <div aria-hidden="true" className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
+                  <label htmlFor="reservation-website">Website</label>
+                  <input id="reservation-website" name="website" tabIndex={-1} autoComplete="off" />
+                </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
@@ -198,7 +229,13 @@ export default function Reservation() {
                     <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
                       Tanggal
                     </label>
-                    <input required name="date" type="date" className={inputCls} />
+                    <input
+                      required
+                      name="date"
+                      type="date"
+                      min={new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10)}
+                      className={inputCls}
+                    />
                   </div>
                   <div className="relative">
                     <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
@@ -249,15 +286,21 @@ export default function Reservation() {
 
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="group flex w-full items-center justify-center gap-3 bg-gold px-8 py-4 text-xs font-medium tracking-[0.3em] text-ink uppercase transition-all duration-500 hover:shadow-[0_0_45px_rgba(201,164,92,0.35)]"
                 >
-                  Konfirmasi Reservasi
+                  {isSubmitting ? "Mengirim Reservasi..." : "Konfirmasi Reservasi"}
                 </button>
 
                 <p className="flex items-center justify-center gap-2 text-center text-[10px] font-light tracking-wide text-cream/35">
                   <Phone size={11} className="text-gold/70" />
-                  Detail reservasi akan dibuka di WhatsApp untuk dikirim
+                  Data akan tersimpan aman untuk ditinjau oleh tim kami
                 </p>
+                {error && (
+                  <p role="alert" className="border border-red-400/30 bg-red-400/5 p-3 text-sm text-red-200">
+                    {error}
+                  </p>
+                )}
               </form>
             )}
           </motion.div>

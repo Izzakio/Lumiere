@@ -37,6 +37,8 @@ jobs:
 
       - name: Build site
         working-directory: Restaurant
+        env:
+          VITE_RESERVATION_API_URL: ${{ vars.RESERVATION_API_URL }}
         run: npm run build
 
       - name: Setup Pages
