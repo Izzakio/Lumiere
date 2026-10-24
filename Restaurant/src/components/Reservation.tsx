@@ -5,7 +5,6 @@ import {
   Check,
   ChevronDown,
   Clock,
-  Mail,
   MapPin,
   Phone,
   Shirt,
@@ -40,11 +39,25 @@ const inputCls =
   "w-full border border-cream/15 bg-white/[0.03] px-4 py-3.5 text-sm font-light text-cream placeholder:text-cream/30 outline-none transition-all duration-300 focus:border-gold/70 focus:bg-white/[0.05] [color-scheme:dark]";
 
 export default function Reservation() {
-  const [submitted, setSubmitted] = useState(false);
+  const [whatsappUrl, setWhatsappUrl] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+
+    const formData = new FormData(e.currentTarget);
+    const message = [
+      "Halo Lumière, saya ingin mengajukan reservasi:",
+      `Nama: ${formData.get("name")}`,
+      `Nomor telepon: ${formData.get("phone")}`,
+      `Tanggal: ${formData.get("date")}`,
+      `Waktu: ${formData.get("time")} WIB`,
+      `Jumlah tamu: ${formData.get("guests")}`,
+      `Permintaan khusus: ${formData.get("notes") || "-"}`,
+    ].join("\n");
+    const url = `https://wa.me/628981056300?${new URLSearchParams({ text: message })}`;
+
+    setWhatsappUrl(url);
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -126,7 +139,7 @@ export default function Reservation() {
             <div className="absolute -top-px -left-px h-10 w-10 border-t-2 border-l-2 border-gold" />
             <div className="absolute -right-px -bottom-px h-10 w-10 border-r-2 border-b-2 border-gold" />
 
-            {submitted ? (
+            {whatsappUrl ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -137,16 +150,24 @@ export default function Reservation() {
                   <Check size={30} className="text-gold" strokeWidth={1.5} />
                 </div>
                 <h3 className="mt-8 font-serif text-3xl font-medium text-cream">
-                  Reservasi Diterima
+                  Lanjutkan di WhatsApp
                 </h3>
                 <p className="mt-4 max-w-sm text-sm leading-relaxed font-light text-cream/55">
-                  Terima kasih. Tim kami akan menghubungi Anda dalam{" "}
-                  <span className="text-gold">1×24 jam</span> untuk konfirmasi
-                  ketersediaan meja Anda.
+                  Pesan reservasi sudah disiapkan untuk nomor kami. Silakan tekan{" "}
+                  <span className="text-gold">Kirim</span> di WhatsApp agar
+                  permintaan Anda diterima.
                 </p>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-8 bg-gold px-8 py-3.5 text-[11px] font-light tracking-[0.28em] text-ink uppercase transition-all duration-400 hover:shadow-[0_0_45px_rgba(201,164,92,0.35)]"
+                >
+                  Buka WhatsApp
+                </a>
                 <button
-                  onClick={() => setSubmitted(false)}
-                  className="mt-10 border border-gold/60 px-8 py-3.5 text-[11px] font-light tracking-[0.28em] text-gold uppercase transition-all duration-400 hover:bg-gold hover:text-ink"
+                  onClick={() => setWhatsappUrl("")}
+                  className="mt-5 border border-gold/60 px-8 py-3.5 text-[11px] font-light tracking-[0.28em] text-gold uppercase transition-all duration-400 hover:bg-gold hover:text-ink"
                 >
                   Buat Reservasi Lain
                 </button>
@@ -162,13 +183,13 @@ export default function Reservation() {
                     <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
                       Nama Lengkap
                     </label>
-                    <input required type="text" placeholder="Nama Anda" className={inputCls} />
+                    <input required name="name" type="text" placeholder="Nama Anda" className={inputCls} />
                   </div>
                   <div>
                     <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
                       Nomor Telepon
                     </label>
-                    <input required type="tel" placeholder="+62 812 ..." className={inputCls} />
+                    <input required name="phone" type="tel" placeholder="+62 812 ..." className={inputCls} />
                   </div>
                 </div>
 
@@ -177,13 +198,13 @@ export default function Reservation() {
                     <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
                       Tanggal
                     </label>
-                    <input required type="date" className={inputCls} />
+                    <input required name="date" type="date" className={inputCls} />
                   </div>
                   <div className="relative">
                     <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
                       Waktu
                     </label>
-                    <select required defaultValue="" className={`${inputCls} appearance-none pr-10`}>
+                    <select required name="time" defaultValue="" className={`${inputCls} appearance-none pr-10`}>
                       <option value="" disabled>
                         Pilih waktu
                       </option>
@@ -201,7 +222,7 @@ export default function Reservation() {
                   <label className="mb-2 block text-[10px] font-light tracking-[0.28em] text-cream/50 uppercase">
                     Jumlah Tamu
                   </label>
-                  <select required defaultValue="" className={`${inputCls} appearance-none pr-10`}>
+                  <select required name="guests" defaultValue="" className={`${inputCls} appearance-none pr-10`}>
                     <option value="" disabled>
                       Pilih jumlah tamu
                     </option>
@@ -219,6 +240,7 @@ export default function Reservation() {
                     Permintaan Khusus <span className="normal-case">(opsional)</span>
                   </label>
                   <textarea
+                    name="notes"
                     rows={3}
                     placeholder="Perayaan ulang tahun, alergi makanan, preferensi tempat duduk..."
                     className={`${inputCls} resize-none`}
@@ -233,8 +255,8 @@ export default function Reservation() {
                 </button>
 
                 <p className="flex items-center justify-center gap-2 text-center text-[10px] font-light tracking-wide text-cream/35">
-                  <Mail size={11} className="text-gold/70" />
-                  Konfirmasi akan dikirim melalui email & WhatsApp
+                  <Phone size={11} className="text-gold/70" />
+                  Detail reservasi akan dibuka di WhatsApp untuk dikirim
                 </p>
               </form>
             )}
